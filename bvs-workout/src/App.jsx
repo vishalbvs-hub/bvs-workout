@@ -172,7 +172,97 @@ const EXERCISE_GUIDES = {
       { name: "Triceps (Long Head)", type: "primary", tip: "Overhead position maximally stretches the long head. Keep elbows close to ears and pointed forward." },
       { name: "Core (Stabilizer)", type: "secondary", tip: "Stagger stance for stability. If lower back hurts, weight is too heavy." }
     ] },
+  "db-crunch": { setup: "Lie on bench or floor. Hold dumbbell on chest or behind head.", form: "Curl torso up squeezing abs. Lift shoulder blades off surface. Slow lower.", mistakes: "Pulling neck. Using momentum. Sitting all the way up (hip flexors). Not controlling negative.", yt: "weighted crunch dumbbell form",
+    muscles: [
+      { name: "Upper Abs (Rectus Abdominis)", type: "primary", tip: "Think about bringing your ribs toward your pelvis, not sitting up. Exhale forcefully at the top and squeeze for 1 second." },
+      { name: "Obliques", type: "secondary", tip: "Add a slight twist at the top to engage obliques more." }
+    ] },
+  "russian-twist": { setup: "Sit on floor, knees bent. Hold medicine ball at chest. Lean back 45°.", form: "Rotate torso side to side, touching ball to floor each side. Feet can be elevated for harder.", mistakes: "Rotating just arms not torso. Too fast. Rounding back. Not engaging core.", yt: "medicine ball russian twist form",
+    muscles: [
+      { name: "Obliques", type: "primary", tip: "Rotate from your ribcage, not your arms. Your belly button should point in the direction you're twisting." },
+      { name: "Rectus Abdominis", type: "secondary", tip: "Keep constant tension by maintaining the lean-back angle throughout." }
+    ] },
+  "reverse-crunch": { setup: "Lie on bench or floor. Hands grip bench behind head or flat on floor.", form: "Bring knees toward chest, then lift hips off surface. Lower slowly.", mistakes: "Using momentum to swing legs. Not lifting hips. Letting legs drop fast.", yt: "reverse crunch on bench form",
+    muscles: [
+      { name: "Lower Abs", type: "primary", tip: "Focus on curling your pelvis toward your ribcage at the top. The hip lift is where the magic happens — don't skip it." },
+      { name: "Hip Flexors", type: "secondary", tip: "Keep the movement slow and controlled to minimize hip flexor involvement." }
+    ] },
+  "dead-bug": { setup: "Lie on back. Arms straight up, knees at 90° above hips.", form: "Extend opposite arm and leg simultaneously. Keep lower back pressed to floor. Alternate.", mistakes: "Back arching off floor. Moving too fast. Not coordinating breath.", yt: "dead bug exercise form tutorial",
+    muscles: [
+      { name: "Deep Core (Transverse Abdominis)", type: "primary", tip: "Press your lower back into the floor the entire time. If it arches, you've gone too far. This builds bulletproof core stability." },
+      { name: "Rectus Abdominis", type: "secondary", tip: "Exhale as you extend. The anti-extension aspect trains abs in a functional way." }
+    ] },
+  "lying-leg-raise": { setup: "Lie on bench, hands gripping edges behind head. Legs extended.", form: "Raise legs to vertical. Lift hips slightly at top. Lower slowly without touching down.", mistakes: "Swinging legs. Arching back. Dropping legs fast. Bending knees too much.", yt: "lying leg raise bench form",
+    muscles: [
+      { name: "Lower Abs", type: "primary", tip: "The key is the hip curl at the top — once legs are vertical, push your feet toward the ceiling by lifting your hips. That's where the abs actually work." },
+      { name: "Hip Flexors", type: "secondary", tip: "Slight knee bend is fine. Keep lower back pressed into bench throughout." }
+    ] },
+  "mb-woodchop": { setup: "Stand with feet shoulder-width. Hold medicine ball overhead to one side.", form: "Chop diagonally across body to opposite knee. Rotate through core. Return controlled.", mistakes: "Using arms only. Not rotating hips. Going too fast. Rounding back.", yt: "medicine ball woodchop exercise form",
+    muscles: [
+      { name: "Obliques", type: "primary", tip: "Drive the rotation from your core, not your arms. The medicine ball is just along for the ride. Feel the stretch in your obliques." },
+      { name: "Rectus Abdominis & Serratus", type: "secondary", tip: "Exhale forcefully as you chop down. Control the return — the eccentric builds muscle." }
+    ] },
+  "bicycle-crunch": { setup: "Lie on back. Hands behind head (don't pull neck). Legs elevated.", form: "Bring opposite elbow to opposite knee while extending other leg. Alternate rhythmically.", mistakes: "Pulling neck forward. Too fast/jerky. Not fully extending leg. Elbows closing in.", yt: "bicycle crunch proper form",
+    muscles: [
+      { name: "Obliques & Rectus Abdominis", type: "primary", tip: "Focus on rotating your ribcage to meet your knee — your elbow follows naturally. Slow down. Each rep should take 2-3 seconds." },
+      { name: "Hip Flexors", type: "secondary", tip: "Extend the straight leg fully to increase the challenge and range of motion." }
+    ] },
+  "plank-hold": { setup: "Forearms on floor, elbows under shoulders. Body in straight line.", form: "Hold position. Squeeze glutes, brace abs, breathe normally. Don't sag or pike.", mistakes: "Hips dropping. Butt too high. Holding breath. Looking up (strains neck).", yt: "plank exercise proper form technique",
+    muscles: [
+      { name: "Full Core (Transverse Abdominis)", type: "primary", tip: "Imagine someone is about to punch you in the stomach — that's how tight your core should be. Squeeze your glutes too." },
+      { name: "Shoulders & Glutes", type: "secondary", tip: "Push the floor away with your forearms. Actively squeeze glutes to prevent hip sag." }
+    ] },
+  "db-side-bend": { setup: "Stand tall. Hold dumbbell in one hand at side. Other hand behind head.", form: "Lean to dumbbell side, stretching oblique. Pull back up using obliques. Do all reps one side then switch.", mistakes: "Using two dumbbells (counterbalances). Bending forward not sideways. Going too fast.", yt: "dumbbell side bend oblique form",
+    muscles: [
+      { name: "Obliques", type: "primary", tip: "Only hold ONE dumbbell. Go heavy. Focus on the stretch at the bottom and squeeze at the top. This is one of the few ways to really load obliques." },
+      { name: "Core Stabilizers", type: "secondary", tip: "Keep your hips completely still — only your torso should move laterally." }
+    ] },
+  "mb-slam": { setup: "Stand with feet shoulder-width. Hold medicine ball overhead with both hands.", form: "Slam ball into floor with full force. Squat to pick up. Repeat explosively.", mistakes: "Not using full body. Bending at waist only. Not catching ball. Half-effort slams.", yt: "medicine ball slam exercise form",
+    muscles: [
+      { name: "Full Core & Rectus Abdominis", type: "primary", tip: "This is about power. Engage your entire core as you slam down — crunch your abs forcefully. Each slam should be maximal effort." },
+      { name: "Shoulders & Lats", type: "secondary", tip: "Reach fully overhead before each slam to get full range. Use a dead-bounce ball if possible." }
+    ] },
+  "mountain-climber": { setup: "Start in push-up position. Hands under shoulders. Core tight.", form: "Drive knees to chest alternately in running motion. Keep hips level.", mistakes: "Butt piking up. Bouncing hips. Not bringing knees far enough. Hands too far forward.", yt: "mountain climbers proper form",
+    muscles: [
+      { name: "Core & Hip Flexors", type: "primary", tip: "Keep your hips at the same height as your shoulders — don't let them bounce. The slower you go, the more ab work; the faster, the more cardio." },
+      { name: "Shoulders & Quads", type: "secondary", tip: "Drive each knee to your chest, not just to your waist. Press the floor away with your hands." }
+    ] },
+  "toe-touch": { setup: "Lie on back. Legs straight up vertically (or slight bend). Arms extended.", form: "Crunch up reaching hands toward toes. Lift shoulder blades fully off floor. Lower controlled.", mistakes: "Bouncing. Not lifting shoulders. Bending legs too much. Using neck.", yt: "toe touch crunch exercise form",
+    muscles: [
+      { name: "Upper Abs (Rectus Abdominis)", type: "primary", tip: "Reach for your toes but focus on curling your upper back off the floor. Exhale at the top and hold for 1 second." },
+      { name: "Hip Flexors", type: "secondary", tip: "Keep legs as vertical as possible. A slight knee bend is fine if hamstrings are tight." }
+    ] },
 };
+
+// YouTube search embed — auto-shows top result for each exercise
+function getYTSearchEmbed(query) {
+  return "https://www.youtube.com/embed?listType=search&list=" + encodeURIComponent(query);
+}
+
+const AB_WORKOUTS = {
+  Ab1: { name: "Ab Day 1", subtitle: "Upper Abs", color: "#f97316", icon: "🟠",
+    exercises: [
+      { id: "db-crunch", name: "DB Weighted Crunches", sets: 3, reps: "10-15", muscle: "Upper Abs" },
+      { id: "russian-twist", name: "MB Russian Twists", sets: 3, reps: "20 total", muscle: "Obliques" },
+      { id: "reverse-crunch", name: "Reverse Crunches", sets: 3, reps: "12-15", muscle: "Lower Abs" },
+      { id: "dead-bug", name: "Dead Bugs", sets: 3, reps: "10 each", muscle: "Core" },
+    ] },
+  Ab2: { name: "Ab Day 2", subtitle: "Lower Abs", color: "#f97316", icon: "🟠",
+    exercises: [
+      { id: "lying-leg-raise", name: "Lying Leg Raises", sets: 3, reps: "10-15", muscle: "Lower Abs" },
+      { id: "mb-woodchop", name: "MB Woodchops", sets: 3, reps: "10 each", muscle: "Obliques" },
+      { id: "bicycle-crunch", name: "Bicycle Crunches", sets: 3, reps: "20 total", muscle: "Abs/Obliques" },
+      { id: "plank-hold", name: "Plank Hold", sets: 3, reps: "30-60s", muscle: "Full Core" },
+    ] },
+  Ab3: { name: "Ab Day 3", subtitle: "Obliques & Full Core", color: "#f97316", icon: "🟠",
+    exercises: [
+      { id: "db-side-bend", name: "DB Side Bends", sets: 3, reps: "12-15 each", muscle: "Obliques" },
+      { id: "mb-slam", name: "Medicine Ball Slams", sets: 3, reps: "10-12", muscle: "Full Core" },
+      { id: "mountain-climber", name: "Mountain Climbers", sets: 3, reps: "30s", muscle: "Core/Cardio" },
+      { id: "toe-touch", name: "Toe Touches", sets: 3, reps: "12-15", muscle: "Upper Abs" },
+    ] },
+};
+const AB_ORDER = ["Ab1", "Ab2", "Ab3"];
 
 const WORKOUTS = {
   A: { name: "Workout A", subtitle: "Barbell Strength", color: "#3b82f6", icon: "🔵",
@@ -331,6 +421,7 @@ function ExerciseLogger({ exercise, existingData, history, onSave, restTime, not
     else { alert("Couldn't find a YouTube video ID in that link. Make sure it's a full YouTube URL."); }
   };
   const videoId = customVideo || null;
+  const searchEmbedUrl = guide ? getYTSearchEmbed(guide.yt + " Jeff Nippard") : null;
   const last = history?.length > 0 ? history[history.length - 1] : null;
   const guide = EXERCISE_GUIDES[exercise.id];
   const inp = { background: "#1e293b", border: "1px solid #334155", color: "#f8fafc", borderRadius: 8, padding: "10px 8px", fontSize: 16, textAlign: "center", width: "100%", outline: "none" };
@@ -370,21 +461,13 @@ function ExerciseLogger({ exercise, existingData, history, onSave, restTime, not
       {guide?.muscles && <MuscleInfo muscles={guide.muscles} />}
       {showGuide && guide && (
         <div style={{ background: "#0f172a", borderRadius: 14, padding: 16, marginBottom: 16, border: "1px solid #1e293b" }}>
-          {/* YouTube Video */}
-          {videoId ? (
+          {/* YouTube Video — search embed by default, custom if saved */}
+          {(videoId || searchEmbedUrl) && (
             <div style={{ marginBottom: 16 }}>
               <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: 10, overflow: "hidden" }}>
-                <iframe src={`https://www.youtube.com/embed/${videoId}`} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={exercise.name + " form video"} />
+                <iframe src={videoId ? `https://www.youtube.com/embed/${videoId}` : searchEmbedUrl} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={exercise.name + " form video"} />
               </div>
-              <button onClick={() => setShowVideoEdit(!showVideoEdit)} style={{ background: "none", border: "none", color: "#475569", fontSize: 11, cursor: "pointer", marginTop: 6, padding: 2 }}>{showVideoEdit ? "Cancel" : "Change video"}</button>
-            </div>
-          ) : (
-            <div style={{ marginBottom: 16 }}>
-              <button onClick={() => window.open("https://www.youtube.com/results?search_query=" + encodeURIComponent(guide.yt + " form tutorial"), "_blank")} style={{ display: "flex", alignItems: "center", gap: 10, background: "#dc2626", borderRadius: 10, padding: "12px 16px", border: "none", cursor: "pointer", width: "100%", marginBottom: 8 }}>
-                <span style={{ fontSize: 20 }}>▶️</span>
-                <div style={{ textAlign: "left" }}><div style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>Find Form Video</div><div style={{ color: "rgba(255,255,255,0.7)", fontSize: 11 }}>Opens YouTube search</div></div>
-              </button>
-              <button onClick={() => setShowVideoEdit(!showVideoEdit)} style={{ background: "none", border: "none", color: "#60a5fa", fontSize: 12, cursor: "pointer", padding: 2 }}>Paste a YouTube link to embed it here</button>
+              <button onClick={() => setShowVideoEdit(!showVideoEdit)} style={{ background: "none", border: "none", color: "#475569", fontSize: 11, cursor: "pointer", marginTop: 6, padding: 2 }}>{showVideoEdit ? "Cancel" : videoId ? "Change video" : "Save a specific video"}</button>
             </div>
           )}
           {/* Custom video input */}
@@ -439,8 +522,8 @@ function CelebrationScreen({ workout, onDone }) {
     <div style={{ background: "#030712", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16, padding: 40, textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>
       <div style={{ fontSize: 72 }}>🎉</div>
       <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: "#f8fafc" }}>Workout Complete!</h1>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 24 }}>{WORKOUTS[workout]?.icon}</span><span style={{ fontSize: 20, fontWeight: 700, color: WORKOUTS[workout]?.color }}>{WORKOUTS[workout]?.name}</span></div>
-      <p style={{ color: "#64748b", fontSize: 15, maxWidth: 280, lineHeight: 1.5 }}>{WORKOUTS[workout]?.subtitle} — crushed it. Recovery starts now.</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 24 }}>{(WORKOUTS[workout] || AB_WORKOUTS[workout])?.icon}</span><span style={{ fontSize: 20, fontWeight: 700, color: (WORKOUTS[workout] || AB_WORKOUTS[workout])?.color }}>{(WORKOUTS[workout] || AB_WORKOUTS[workout])?.name}</span></div>
+      <p style={{ color: "#64748b", fontSize: 15, maxWidth: 280, lineHeight: 1.5 }}>{(WORKOUTS[workout] || AB_WORKOUTS[workout])?.subtitle} — crushed it. Recovery starts now.</p>
       <div style={{ display: "flex", gap: 8, marginTop: 12 }}>{["💪", "🔥", "👊"].map((e, i) => <span key={i} style={{ fontSize: 32 }}>{e}</span>)}</div>
       <button onClick={onDone} style={{ marginTop: 20, background: "#3b82f6", border: "none", color: "#fff", borderRadius: 12, padding: "14px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer" }}>Back to Home →</button>
     </div>
@@ -565,6 +648,8 @@ export default function App() {
   // Save helpers — all include username and pin
   const sv = async (key, value) => { if (user && userPin) await saveData(user, userPin, key, value); };
   const gnw = useCallback(() => config.lastWorkout ? WORKOUT_ORDER[(WORKOUT_ORDER.indexOf(config.lastWorkout) + 1) % 4] : "A", [config]);
+  const gnaw = useCallback(() => config.lastAbWorkout ? AB_ORDER[(AB_ORDER.indexOf(config.lastAbWorkout) + 1) % 3] : "Ab1", [config]);
+  const getWorkout = (key) => WORKOUTS[key] || AB_WORKOUTS[key] || null;
   const iwd = useCallback(() => { if (!config.lastWorkoutDate) return true; const d = Math.floor((new Date(today) - new Date(config.lastWorkoutDate)) / 86400000); return d >= 2 || d < 0; }, [config, today]);
   const twt = workoutLogs[today]?.type || null;
 
@@ -576,13 +661,14 @@ export default function App() {
   const startW = t => { setActiveWorkout(t); setActiveExercise(0); setView("workout-active"); };
   const finishW = () => {
     const c = activeWorkout;
-    // Ensure workout is logged even if no exercises were filled in
     const existing = workoutLogs[today] || { type: c, exercises: {} };
     existing.type = c;
     const nw = { ...workoutLogs, [today]: existing };
     setWorkoutLogs(nw); sv("ft-workouts", nw);
     setCelebrationWorkout(c); setView("celebration"); setActiveWorkout(null); setActiveExercise(null);
-    const nc = { ...config, lastWorkout: c, lastWorkoutDate: today }; setConfig(nc); sv("ft-config", nc);
+    const isAb = AB_ORDER.includes(c);
+    const nc = isAb ? { ...config, lastAbWorkout: c } : { ...config, lastWorkout: c, lastWorkoutDate: today };
+    setConfig(nc); sv("ft-config", nc);
   };
   const skipWorkout = () => {
     // Don't advance rotation — just make today rest, tomorrow = same workout
@@ -628,7 +714,7 @@ export default function App() {
   if (view === "celebration" && celebrationWorkout) return <CelebrationScreen workout={celebrationWorkout} onDone={() => { setCelebrationWorkout(null); setView("dashboard"); }} />;
 
   if (view === "workout-active" && activeWorkout) {
-    const wo = WORKOUTS[activeWorkout], ex = wo.exercises[activeExercise], tl = workoutLogs[today];
+    const wo = getWorkout(activeWorkout), ex = wo.exercises[activeExercise], tl = workoutLogs[today];
     const cc = tl ? Object.keys(tl.exercises || {}).filter(e => tl.exercises[e]?.sets?.every(s => s.weight && s.reps && s.rpe)).length : 0;
     return (
       <div style={{ background: "#030712", minHeight: "100vh", color: "#f8fafc", fontFamily: "'DM Sans', sans-serif" }}>
@@ -684,7 +770,7 @@ export default function App() {
         <button onClick={() => setEditGoals(!editGoals)} style={{ background: "none", border: "none", color: "#475569", fontSize: 12, cursor: "pointer", marginTop: 8, padding: "4px 0" }}>{editGoals ? "Hide goals" : "⚙️ Edit goals"}</button>
         {editGoals && <div style={{ ...cS, marginTop: 4, padding: 14 }}><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}><div><div style={{ color: "#475569", fontSize: 10, fontWeight: 700, marginBottom: 4 }}>STEP GOAL</div><input type="number" value={goals.steps} onChange={e => saveGoals2({ ...goals, steps: parseInt(e.target.value) || 0 })} style={{ ...iS, padding: "8px 10px", fontSize: 16 }} /></div><div><div style={{ color: "#475569", fontSize: 10, fontWeight: 700, marginBottom: 4 }}>CALORIE LIMIT</div><input type="number" value={goals.calories} onChange={e => saveGoals2({ ...goals, calories: parseInt(e.target.value) || 0 })} style={{ ...iS, padding: "8px 10px", fontSize: 16 }} /></div></div></div>}
         <div style={{ ...cS, marginTop: 12 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>🥗 NUTRITION</span><button onClick={() => setView("meals")} style={{ background: "none", border: "none", color: "#60a5fa", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Add →</button></div><div style={{ display: "flex", gap: 20, marginTop: 12 }}><div><span style={{ fontSize: 28, fontWeight: 700, color: "#f59e0b" }}>{tc}</span><span style={{ color: "#64748b", fontSize: 13, marginLeft: 4 }}>cal</span></div><div><span style={{ fontSize: 28, fontWeight: 700, color: "#22c55e" }}>{tp}g</span><span style={{ color: "#64748b", fontSize: 13, marginLeft: 4 }}>protein</span></div></div></div>
-        <div style={{ ...cS, marginTop: 12 }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>🏋️ TODAY'S WORKOUT</span>{twt ? <div style={{ marginTop: 10 }}><div style={{ color: "#22c55e", fontSize: 16, fontWeight: 700 }}>✓ {WORKOUTS[twt].name} Completed</div><button onClick={() => startW(twt)} style={{ ...bP, background: "#1e293b", marginTop: 10, fontSize: 14 }}>View / Edit →</button></div> : iwd() ? <div style={{ marginTop: 10 }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 18 }}>{WORKOUTS[gnw()]?.icon}</span><div style={{ color: "#f8fafc", fontSize: 16, fontWeight: 700 }}>{WORKOUTS[gnw()].name}</div></div><div style={{ color: "#64748b", fontSize: 13, marginBottom: 12, marginTop: 4 }}>{WORKOUTS[gnw()].subtitle}</div><button onClick={() => startW(gnw())} style={bP}>Start Workout →</button><button onClick={skipWorkout} style={{ background: "none", border: "none", color: "#64748b", fontSize: 13, cursor: "pointer", marginTop: 10, width: "100%", padding: 8 }}>Skip — do this one tomorrow instead</button></div> : <div style={{ marginTop: 10 }}><div style={{ color: "#64748b", fontSize: 14, marginBottom: 12 }}>😴 Rest day — <span style={{ color: "#94a3b8" }}>next up: {WORKOUTS[gnw()]?.name}</span></div><button onClick={workOutToday} style={{ ...bP, background: "#1e293b" }}>I'm working out today →</button></div>}<button onClick={realignSchedule} style={{ background: "none", border: "none", color: "#475569", fontSize: 11, cursor: "pointer", marginTop: 8, width: "100%", padding: 4 }}>🔄 Realign schedule from today</button></div>
+        <div style={{ ...cS, marginTop: 12 }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>🏋️ TODAY'S WORKOUT</span>{twt ? <div style={{ marginTop: 10 }}><div style={{ color: "#22c55e", fontSize: 16, fontWeight: 700 }}>✓ {getWorkout(twt)?.name || twt} Completed</div><button onClick={() => startW(twt)} style={{ ...bP, background: "#1e293b", marginTop: 10, fontSize: 14 }}>View / Edit →</button></div> : iwd() ? <div style={{ marginTop: 10 }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 18 }}>{WORKOUTS[gnw()]?.icon}</span><div style={{ color: "#f8fafc", fontSize: 16, fontWeight: 700 }}>{WORKOUTS[gnw()].name}</div></div><div style={{ color: "#64748b", fontSize: 13, marginBottom: 12, marginTop: 4 }}>{WORKOUTS[gnw()].subtitle}</div><button onClick={() => startW(gnw())} style={bP}>Start Workout →</button><button onClick={skipWorkout} style={{ background: "none", border: "none", color: "#64748b", fontSize: 13, cursor: "pointer", marginTop: 10, width: "100%", padding: 8 }}>Skip — do this one tomorrow instead</button></div> : <div style={{ marginTop: 10 }}><div style={{ color: "#64748b", fontSize: 14, marginBottom: 12 }}>😴 Rest day — <span style={{ color: "#94a3b8" }}>next up: {WORKOUTS[gnw()]?.name}</span></div><button onClick={workOutToday} style={{ ...bP, background: "#1e293b" }}>I'm working out today →</button><button onClick={() => startW(gnaw())} style={{ ...bP, background: "linear-gradient(135deg, #f97316, #ea580c)", marginTop: 8 }}>🟠 Do Abs — {AB_WORKOUTS[gnaw()]?.name} →</button></div>}<button onClick={realignSchedule} style={{ background: "none", border: "none", color: "#475569", fontSize: 11, cursor: "pointer", marginTop: 8, width: "100%", padding: 4 }}>🔄 Realign schedule from today</button></div>
 
         {/* Reset All */}
         <div style={{ marginTop: 24, textAlign: "center" }}>
