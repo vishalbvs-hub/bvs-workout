@@ -309,15 +309,28 @@ function MuscleInfo({ muscles }) {
   );
 }
 
-function ExerciseLogger({ exercise, existingData, history, onSave, restTime, note, onSaveNote }) {
+function ExerciseLogger({ exercise, existingData, history, onSave, restTime, note, onSaveNote, customVideo, onSaveVideo }) {
   const [sets, setSets] = useState(() => existingData?.length ? JSON.parse(JSON.stringify(existingData)) : Array.from({ length: exercise.sets }, () => ({ weight: "", reps: "", rpe: "" })));
   const [timerKey, setTimerKey] = useState(null), [showGuide, setShowGuide] = useState(false);
   const [noteText, setNoteText] = useState(note || ""), [showNote, setShowNote] = useState(false);
-  useEffect(() => { setSets(existingData?.length ? JSON.parse(JSON.stringify(existingData)) : Array.from({ length: exercise.sets }, () => ({ weight: "", reps: "", rpe: "" }))); setTimerKey(null); setShowGuide(false); setNoteText(note || ""); setShowNote(false); }, [exercise.id]);
+  const [videoInput, setVideoInput] = useState(""), [showVideoEdit, setShowVideoEdit] = useState(false);
+  useEffect(() => { setSets(existingData?.length ? JSON.parse(JSON.stringify(existingData)) : Array.from({ length: exercise.sets }, () => ({ weight: "", reps: "", rpe: "" }))); setTimerKey(null); setShowGuide(false); setNoteText(note || ""); setShowNote(false); setVideoInput(""); setShowVideoEdit(false); }, [exercise.id]);
   const update = (i, f, v) => { const n = [...sets]; n[i] = { ...n[i], [f]: v }; setSets(n); if (f === "rpe" && v && n[i].weight && n[i].reps) { setTimerKey(`${exercise.id}-${i}-${Date.now()}`); onSave(exercise.id, n); } };
   const saveWR = (i) => { if (sets[i].weight && sets[i].reps) onSave(exercise.id, sets); };
   const addSet = () => { const n = [...sets, { weight: "", reps: "", rpe: "" }]; setSets(n); };
   const removeSet = (i) => { if (sets.length <= 1) return; const n = sets.filter((_, j) => j !== i); setSets(n); onSave(exercise.id, n); };
+  const extractVideoId = (url) => {
+    if (!url) return null;
+    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  };
+  const saveCustomVideo = () => {
+    const vid = extractVideoId(videoInput);
+    if (vid) { onSaveVideo(exercise.id, vid); setShowVideoEdit(false); setVideoInput(""); }
+    else if (videoInput.trim() === "") { onSaveVideo(exercise.id, ""); setShowVideoEdit(false); }
+    else { alert("Couldn't find a YouTube video ID in that link. Make sure it's a full YouTube URL."); }
+  };
+  const videoId = customVideo || null;
   const last = history?.length > 0 ? history[history.length - 1] : null;
   const guide = EXERCISE_GUIDES[exercise.id];
   const inp = { background: "#1e293b", border: "1px solid #334155", color: "#f8fafc", borderRadius: 8, padding: "10px 8px", fontSize: 16, textAlign: "center", width: "100%", outline: "none" };
@@ -357,10 +370,34 @@ function ExerciseLogger({ exercise, existingData, history, onSave, restTime, not
       {guide?.muscles && <MuscleInfo muscles={guide.muscles} />}
       {showGuide && guide && (
         <div style={{ background: "#0f172a", borderRadius: 14, padding: 16, marginBottom: 16, border: "1px solid #1e293b" }}>
-          <button onClick={() => window.open("https://www.youtube.com/results?search_query=" + encodeURIComponent(guide.yt), "_blank")} style={{ display: "flex", alignItems: "center", gap: 10, background: "#dc2626", borderRadius: 10, padding: "12px 16px", border: "none", cursor: "pointer", width: "100%", marginBottom: 16 }}>
-            <span style={{ fontSize: 20 }}>▶️</span>
-            <div style={{ textAlign: "left" }}><div style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>Watch Form Video</div><div style={{ color: "rgba(255,255,255,0.7)", fontSize: 11 }}>Opens YouTube</div></div>
-          </button>
+          {/* YouTube Video */}
+          {videoId ? (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: 10, overflow: "hidden" }}>
+                <iframe src={`https://www.youtube.com/embed/${videoId}`} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={exercise.name + " form video"} />
+              </div>
+              <button onClick={() => setShowVideoEdit(!showVideoEdit)} style={{ background: "none", border: "none", color: "#475569", fontSize: 11, cursor: "pointer", marginTop: 6, padding: 2 }}>{showVideoEdit ? "Cancel" : "Change video"}</button>
+            </div>
+          ) : (
+            <div style={{ marginBottom: 16 }}>
+              <button onClick={() => window.open("https://www.youtube.com/results?search_query=" + encodeURIComponent(guide.yt + " form tutorial"), "_blank")} style={{ display: "flex", alignItems: "center", gap: 10, background: "#dc2626", borderRadius: 10, padding: "12px 16px", border: "none", cursor: "pointer", width: "100%", marginBottom: 8 }}>
+                <span style={{ fontSize: 20 }}>▶️</span>
+                <div style={{ textAlign: "left" }}><div style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>Find Form Video</div><div style={{ color: "rgba(255,255,255,0.7)", fontSize: 11 }}>Opens YouTube search</div></div>
+              </button>
+              <button onClick={() => setShowVideoEdit(!showVideoEdit)} style={{ background: "none", border: "none", color: "#60a5fa", fontSize: 12, cursor: "pointer", padding: 2 }}>Paste a YouTube link to embed it here</button>
+            </div>
+          )}
+          {/* Custom video input */}
+          {showVideoEdit && (
+            <div style={{ marginBottom: 14, background: "#111827", borderRadius: 10, padding: 12, border: "1px solid #1e293b" }}>
+              <div style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600, marginBottom: 6 }}>PASTE YOUTUBE LINK</div>
+              <input type="text" value={videoInput} onChange={e => setVideoInput(e.target.value)} placeholder="https://youtube.com/watch?v=..." style={{ background: "#1e293b", border: "1px solid #334155", color: "#f8fafc", borderRadius: 8, padding: "10px 12px", fontSize: 14, width: "100%", outline: "none", boxSizing: "border-box", marginBottom: 8 }} />
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={saveCustomVideo} style={{ flex: 1, background: "#3b82f6", border: "none", color: "#fff", borderRadius: 8, padding: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Save Video</button>
+                {videoId && <button onClick={() => { onSaveVideo(exercise.id, ""); setShowVideoEdit(false); }} style={{ background: "#1e293b", border: "1px solid #334155", color: "#ef4444", borderRadius: 8, padding: "10px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Remove</button>}
+              </div>
+            </div>
+          )}
           <div style={{ marginBottom: 14 }}><div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ background: "#3b82f6", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10 }}>1</span><span style={{ color: "#60a5fa", fontSize: 13, fontWeight: 700 }}>SETUP</span></div><p style={{ color: "#cbd5e1", fontSize: 13, lineHeight: 1.5, margin: 0 }}>{guide.setup}</p></div>
           <div style={{ marginBottom: 14 }}><div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ background: "#22c55e", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10 }}>2</span><span style={{ color: "#22c55e", fontSize: 13, fontWeight: 700 }}>FORM</span></div><p style={{ color: "#cbd5e1", fontSize: 13, lineHeight: 1.5, margin: 0 }}>{guide.form}</p></div>
           <div><div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ background: "#ef4444", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10 }}>3</span><span style={{ color: "#ef4444", fontSize: 13, fontWeight: 700 }}>COMMON MISTAKES</span></div><p style={{ color: "#cbd5e1", fontSize: 13, lineHeight: 1.5, margin: 0 }}>{guide.mistakes}</p></div>
@@ -482,6 +519,7 @@ export default function App() {
   const [mealName, setMealName] = useState(""), [mealCals, setMealCals] = useState(""), [mealProtein, setMealProtein] = useState("");
   const [celebrationWorkout, setCelebrationWorkout] = useState(null), [editGoals, setEditGoals] = useState(false);
   const [exerciseNotes, setExerciseNotes] = useState({});
+  const [customVideos, setCustomVideos] = useState({});
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const today = TODAY();
 
@@ -498,7 +536,7 @@ export default function App() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const [c, w, d, wl, ml, g, en] = await Promise.all([
+      const [c, w, d, wl, ml, g, en, cv] = await Promise.all([
         loadData(user, "ft-config", { restTime: 90, lastWorkout: null, lastWorkoutDate: null }),
         loadData(user, "ft-weights", {}),
         loadData(user, "ft-daily", {}),
@@ -506,8 +544,9 @@ export default function App() {
         loadData(user, "ft-meals", {}),
         loadData(user, "ft-goals", { steps: 7500, calories: 2000 }),
         loadData(user, "ft-notes", {}),
+        loadData(user, "ft-videos", {}),
       ]);
-      setConfig(c); setWeights(w); setDaily(d); setWorkoutLogs(wl); setMealLogs(ml); setGoals(g); setExerciseNotes(en);
+      setConfig(c); setWeights(w); setDaily(d); setWorkoutLogs(wl); setMealLogs(ml); setGoals(g); setExerciseNotes(en); setCustomVideos(cv);
       if (w[today]) setWeightInput(w[today].toString());
       if (d[today]) { setStepsInput(d[today].steps?.toString() || ""); setCalInput(d[today].calories?.toString() || ""); }
       setLoading(false);
@@ -562,14 +601,15 @@ export default function App() {
   const workOutToday = () => { realignSchedule(); };
   const geh = eid => { const h = []; Object.keys(workoutLogs).sort().forEach(d => { const l = workoutLogs[d]; if (l.exercises?.[eid]) h.push({ date: d, ...l.exercises[eid] }); }); return h; };
   const saveNote = async (eid, note) => { const n = { ...exerciseNotes, [eid]: note }; setExerciseNotes(n); await sv("ft-notes", n); };
+  const saveVideo = async (eid, videoId) => { const n = { ...customVideos, [eid]: videoId }; setCustomVideos(n); await sv("ft-videos", n); };
   const resetAll = async () => {
     const empty = {};
     const defConfig = { restTime: 90, lastWorkout: null, lastWorkoutDate: null };
     const defGoals = { steps: 7500, calories: 2000 };
-    setConfig(defConfig); setWeights(empty); setDaily(empty); setWorkoutLogs(empty); setMealLogs(empty); setGoals(defGoals); setExerciseNotes(empty);
+    setConfig(defConfig); setWeights(empty); setDaily(empty); setWorkoutLogs(empty); setMealLogs(empty); setGoals(defGoals); setExerciseNotes(empty); setCustomVideos(empty);
     setWeightInput(""); setStepsInput(""); setCalInput("");
     await sv("ft-config", defConfig); await sv("ft-weights", empty); await sv("ft-daily", empty);
-    await sv("ft-workouts", empty); await sv("ft-meals", empty); await sv("ft-goals", defGoals); await sv("ft-notes", empty);
+    await sv("ft-workouts", empty); await sv("ft-meals", empty); await sv("ft-goals", defGoals); await sv("ft-notes", empty); await sv("ft-videos", empty);
     setShowResetConfirm(false);
   };
   const saveGoals2 = async (g) => { setGoals(g); await sv("ft-goals", g); setEditGoals(false); };
@@ -602,7 +642,7 @@ export default function App() {
           {wo.exercises.map((e, i) => { const done = tl?.exercises?.[e.id]?.sets?.every(s => s.weight && s.reps && s.rpe); return <button key={i} onClick={() => setActiveExercise(i)} style={{ background: i === activeExercise ? "#3b82f6" : done ? "rgba(34,197,94,0.2)" : "#1e293b", border: done && i !== activeExercise ? "1px solid #22c55e" : "1px solid transparent", color: i === activeExercise ? "#fff" : done ? "#22c55e" : "#94a3b8", borderRadius: 8, padding: "8px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer", flexShrink: 0, minWidth: 36 }}>{done ? "✓" : i + 1}</button>; })}
         </div>
         <div style={{ padding: 20, paddingBottom: 100 }}>
-          <ExerciseLogger key={ex.id} exercise={ex} existingData={tl?.exercises?.[ex.id]?.sets} history={geh(ex.id)} restTime={config.restTime} onSave={(eid, sd) => sE(activeWorkout, eid, sd)} note={exerciseNotes[ex.id] || ""} onSaveNote={saveNote} />
+          <ExerciseLogger key={ex.id} exercise={ex} existingData={tl?.exercises?.[ex.id]?.sets} history={geh(ex.id)} restTime={config.restTime} onSave={(eid, sd) => sE(activeWorkout, eid, sd)} note={exerciseNotes[ex.id] || ""} onSaveNote={saveNote} customVideo={customVideos[ex.id] || ""} onSaveVideo={saveVideo} />
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
             <button onClick={() => setActiveExercise(Math.max(0, activeExercise - 1))} disabled={activeExercise === 0} style={{ ...bP, background: "#1e293b", opacity: activeExercise === 0 ? 0.4 : 1 }}>← Prev</button>
             <button onClick={() => setActiveExercise(Math.min(wo.exercises.length - 1, activeExercise + 1))} disabled={activeExercise === wo.exercises.length - 1} style={{ ...bP, opacity: activeExercise === wo.exercises.length - 1 ? 0.4 : 1 }}>Next →</button>
