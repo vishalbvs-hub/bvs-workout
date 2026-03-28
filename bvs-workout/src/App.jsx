@@ -542,24 +542,19 @@ function CalendarView({ workoutLogs, config, daily, onStartWorkout, onSaveDaily,
   const nm = () => { mo === 11 ? (setMo(0), setYr(yr + 1)) : setMo(mo + 1); setSel(null); };
   useEffect(() => { if (sel && daily[sel]) { setEditSteps(daily[sel].steps?.toString() || ""); setEditCals(daily[sel].calories?.toString() || ""); } else { setEditSteps(""); setEditCals(""); } }, [sel]);
   const gwfd = (ds) => {
-    // Always show completed workouts first (never delete these)
-    if (workoutLogs[ds]) return { type: workoutLogs[ds].type, completed: true };
-    // Past dates with no log = no workout
+    // Always show completed/skipped workouts
+    if (workoutLogs[ds]) {
+      if (workoutLogs[ds].type === "skip") return { type: "skip", completed: true };
+      return { type: workoutLogs[ds].type, completed: true };
+    }
+    // Past dates with no log = nothing
     const t = new Date(ds), td = new Date(todayStr);
     if (t < td) return null;
-    // Today and future: project based on current config
-    let lld = config.lastWorkoutDate, lt = config.lastWorkout, la = config.lastAbWorkout || "Ab3";
-    if (!lld || !lt) { lld = todayStr; lt = "D"; }
-    const df = Math.floor((t - new Date(lld)) / 86400000);
-    if (df <= 0) return null;
-    if (df % 2 === 0) {
-      // Main workout day
-      return { type: WORKOUT_ORDER[(WORKOUT_ORDER.indexOf(lt) + df / 2) % 4], completed: false };
-    } else {
-      // Ab day (on what used to be rest days)
-      const abIndex = (AB_ORDER.indexOf(la) + Math.ceil(df / 2)) % 3;
-      return { type: AB_ORDER[abIndex], completed: false };
-    }
+    // Only project tomorrow (1 day ahead), not further
+    const df = Math.floor((t - td) / 86400000);
+    if (df === 0 || df > 1) return null;
+    // Tomorrow: show next suggestion
+    return { type: getNextSuggestion(), completed: false };
   };
   const tw = Object.keys(workoutLogs).length;
   const iS = { background: "#1e293b", border: "1px solid #334155", color: "#f8fafc", borderRadius: 8, padding: "10px 12px", fontSize: 16, width: "100%", outline: "none", boxSizing: "border-box" };
@@ -572,7 +567,7 @@ function CalendarView({ workoutLogs, config, daily, onStartWorkout, onSaveDaily,
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 6 }}>{["S","M","T","W","T","F","S"].map((d, i) => <div key={i} style={{ color: "#475569", fontSize: 10, fontWeight: 700, textAlign: "center", padding: 3 }}>{d}</div>)}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
           {Array.from({ length: fdow }, (_, i) => <div key={`e${i}`} style={{ aspectRatio: "1" }} />)}
-          {Array.from({ length: dim }, (_, i) => { const day = i+1, ds = `${yr}-${String(mo+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`; const w = gwfd(ds), isT = ds === todayStr, isS = ds === sel, isP = new Date(ds) < new Date(todayStr); const wk = w ? (WORKOUTS[w.type] || AB_WORKOUTS[w.type]) : null; const dc = wk?.color || null, wi = wk?.icon || null;
+          {Array.from({ length: dim }, (_, i) => { const day = i+1, ds = `${yr}-${String(mo+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`; const w = gwfd(ds), isT = ds === todayStr, isS = ds === sel, isP = new Date(ds) < new Date(todayStr); const wk = w && w.type !== "skip" ? (WORKOUTS[w.type] || AB_WORKOUTS[w.type]) : null; const dc = w?.type === "skip" ? "#475569" : wk?.color || null, wi = w?.type === "skip" ? "⏭️" : wk?.icon || null;
             return <button key={day} onClick={() => setSel(ds === sel ? null : ds)} style={{ aspectRatio: "1", borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1, cursor: "pointer", background: isS ? "#1e293b" : w?.completed ? `${dc}20` : "transparent", border: isT ? "2px solid #3b82f6" : isS ? "1px solid #334155" : "1px solid transparent", color: isP && !w ? "#334155" : isT ? "#3b82f6" : "#f8fafc", fontSize: 13, fontWeight: isT ? 800 : 500, boxShadow: isT ? "0 0 12px rgba(59,130,246,0.3)" : "none" }}><span>{day}</span>{w && <span style={{ fontSize: 6, opacity: w.completed ? 1 : 0.4 }}>{wi}</span>}</button>;
           })}
         </div>
@@ -581,7 +576,7 @@ function CalendarView({ workoutLogs, config, daily, onStartWorkout, onSaveDaily,
           <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#0f172a", borderRadius: 16, padding: "3px 8px" }}><span style={{ fontSize: 8 }}>🟠</span><span style={{ color: "#f97316", fontSize: 10, fontWeight: 700 }}>Abs</span></div>
         </div>
       </div>
-      {sel && (() => { const swk = swd ? (WORKOUTS[swd.type] || AB_WORKOUTS[swd.type]) : null; return <div style={{ ...cs, marginTop: 12, borderLeft: swk ? `3px solid ${swk.color}` : "3px solid #334155" }}>
+      {sel && (() => { const swk = swd && swd.type !== "skip" ? (WORKOUTS[swd.type] || AB_WORKOUTS[swd.type]) : null; return <div style={{ ...cs, marginTop: 12, borderLeft: swd?.type === "skip" ? "3px solid #475569" : swk ? `3px solid ${swk.color}` : "3px solid #334155" }}>
         <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 600, letterSpacing: 1, marginBottom: 10 }}>{new Date(sel + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</div>
         <div style={{ background: "#0f172a", borderRadius: 12, padding: 14, marginBottom: 12, border: "1px solid #1e293b" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -590,7 +585,7 @@ function CalendarView({ workoutLogs, config, daily, onStartWorkout, onSaveDaily,
           </div>
           <button onClick={() => onSaveDaily(sel, parseInt(editSteps) || 0, parseInt(editCals) || 0)} style={{ marginTop: 10, width: "100%", padding: 10, background: "#3b82f6", border: "none", color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Save</button>
         </div>
-        {swd && swk ? <div>
+        {swd?.type === "skip" ? <div style={{ color: "#64748b", fontSize: 14 }}>⏭️ Skipped</div> : swd && swk ? <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}><span style={{ fontSize: 20 }}>{swk.icon}</span><span style={{ fontSize: 18, fontWeight: 700 }}>{swk.name}</span>{swd.completed ? <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 600, background: "rgba(34,197,94,0.15)", padding: "2px 8px", borderRadius: 12 }}>✓ Done</span> : <span style={{ color: "#f59e0b", fontSize: 12, fontWeight: 600, background: "rgba(245,158,11,0.15)", padding: "2px 8px", borderRadius: 12 }}>Scheduled</span>}</div>
           {swd.completed && workoutLogs[sel]?.exercises && <div style={{ borderTop: "1px solid #1f2937", paddingTop: 10 }}>{swk.exercises.map(ex => { const lg = workoutLogs[sel].exercises[ex.id]; return <div key={ex.id} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #0f172a" }}><span style={{ color: "#cbd5e1", fontSize: 12 }}>{ex.name}</span><span style={{ color: "#64748b", fontSize: 11 }}>{lg ? lg.sets.filter(s => s.weight).map(s => `${s.weight}×${s.reps}`).join(", ") : "—"}</span></div>; })}</div>}
           {sel === todayStr && !swd.completed && <button onClick={() => onStartWorkout(swd.type)} style={{ background: swk.color, border: "none", color: "#fff", borderRadius: 12, padding: "14px 20px", fontSize: 16, fontWeight: 700, cursor: "pointer", width: "100%", marginTop: 8 }}>Start {swk.name} →</button>}
@@ -614,7 +609,6 @@ export default function App() {
   const [exerciseNotes, setExerciseNotes] = useState({});
   const [customVideos, setCustomVideos] = useState({});
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [showSkipSelect, setShowSkipSelect] = useState(false);
   const today = TODAY();
 
   // Check for saved session
@@ -658,14 +652,21 @@ export default function App() {
 
   // Save helpers — all include username and pin
   const sv = async (key, value) => { if (user && userPin) await saveData(user, userPin, key, value); };
-  const gnw = useCallback(() => config.lastWorkout ? WORKOUT_ORDER[(WORKOUT_ORDER.indexOf(config.lastWorkout) + 1) % 4] : "A", [config]);
-  const gnaw = useCallback(() => {
-    const la = config.lastAbWorkout || "Ab3";
-    return AB_ORDER[(AB_ORDER.indexOf(la) + 1) % 3];
-  }, [config]);
   const getWorkout = (key) => WORKOUTS[key] || AB_WORKOUTS[key] || null;
-  const iwd = useCallback(() => { if (!config.lastWorkoutDate) return true; const d = Math.floor((new Date(today) - new Date(config.lastWorkoutDate)) / 86400000); return d >= 2 || d < 0; }, [config, today]);
-  const isAbDay = useCallback(() => { if (!config.lastWorkoutDate) return false; const d = Math.floor((new Date(today) - new Date(config.lastWorkoutDate)) / 86400000); return d === 1; }, [config, today]);
+  // Get next suggested workout based on last completed
+  const getNextSuggestion = useCallback(() => {
+    const lm = config.lastWorkout || null;
+    const la = config.lastAbWorkout || null;
+    const lastType = config.lastCompletedType || null; // "main" or "ab"
+    if (!lm && !la) return "A"; // fresh start
+    if (lastType === "main" || (!lastType && lm)) {
+      // Last was a main workout → next is an ab
+      return AB_ORDER[(AB_ORDER.indexOf(la || "Ab3") + 1) % 3];
+    } else {
+      // Last was an ab → next is a main
+      return WORKOUT_ORDER[(WORKOUT_ORDER.indexOf(lm || "D") + 1) % 4];
+    }
+  }, [config]);
   const twt = workoutLogs[today]?.type || null;
 
   const sW = async v => { const n = { ...weights, [today]: parseFloat(v) }; setWeights(n); await sv("ft-weights", n); };
@@ -682,31 +683,22 @@ export default function App() {
     setWorkoutLogs(nw); sv("ft-workouts", nw);
     setCelebrationWorkout(c); setView("celebration"); setActiveWorkout(null); setActiveExercise(null);
     const isAb = AB_ORDER.includes(c);
-    const nc = isAb ? { ...config, lastAbWorkout: c } : { ...config, lastWorkout: c, lastWorkoutDate: today };
+    const nc = isAb
+      ? { ...config, lastAbWorkout: c, lastCompletedType: "ab" }
+      : { ...config, lastWorkout: c, lastWorkoutDate: today, lastCompletedType: "main" };
     setConfig(nc); sv("ft-config", nc);
   };
-  const skipDay = () => {
-    // Do nothing today. Tomorrow resumes the schedule.
-    // Set lastWorkoutDate to today so diff=0 (null), schedule resumes from tomorrow
-    const nc = { ...config, lastWorkoutDate: today };
-    setConfig(nc); sv("ft-config", nc);
-    setShowSkipSelect(false);
-  };
-  const skipSelect = (workoutKey) => {
-    // Reset schedule so today = the selected workout
-    // Set lastWorkout to the one BEFORE selected so gnw() returns selected
-    const prevIdx = (WORKOUT_ORDER.indexOf(workoutKey) - 1 + 4) % 4;
-    const twoDaysAgo = new Date(); twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-    const nc = { ...config, lastWorkout: WORKOUT_ORDER[prevIdx], lastWorkoutDate: twoDaysAgo.toISOString().split("T")[0] };
-    setConfig(nc); sv("ft-config", nc);
-    setShowSkipSelect(false);
+  const skipDay = async () => {
+    // Mark today as skipped — log it so calendar shows it
+    const nw = { ...workoutLogs, [today]: { type: "skip", exercises: {} } };
+    setWorkoutLogs(nw); await sv("ft-workouts", nw);
   };
   const geh = eid => { const h = []; Object.keys(workoutLogs).sort().forEach(d => { const l = workoutLogs[d]; if (l.exercises?.[eid]) h.push({ date: d, ...l.exercises[eid] }); }); return h; };
   const saveNote = async (eid, note) => { const n = { ...exerciseNotes, [eid]: note }; setExerciseNotes(n); await sv("ft-notes", n); };
   const saveVideo = async (eid, videoId) => { const n = { ...customVideos, [eid]: videoId }; setCustomVideos(n); await sv("ft-videos", n); };
   const resetAll = async () => {
     const empty = {};
-    const defConfig = { restTime: 90, lastWorkout: null, lastWorkoutDate: null };
+    const defConfig = { restTime: 90, lastWorkout: null, lastWorkoutDate: null, lastAbWorkout: null, lastCompletedType: null };
     const defGoals = { steps: 7500, calories: 2000 };
     setConfig(defConfig); setWeights(empty); setDaily(empty); setWorkoutLogs(empty); setMealLogs(empty); setGoals(defGoals); setExerciseNotes(empty); setCustomVideos(empty);
     setWeightInput(""); setStepsInput(""); setCalInput("");
@@ -786,40 +778,50 @@ export default function App() {
         <button onClick={() => setEditGoals(!editGoals)} style={{ background: "none", border: "none", color: "#475569", fontSize: 12, cursor: "pointer", marginTop: 8, padding: "4px 0" }}>{editGoals ? "Hide goals" : "⚙️ Edit goals"}</button>
         {editGoals && <div style={{ ...cS, marginTop: 4, padding: 14 }}><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}><div><div style={{ color: "#475569", fontSize: 10, fontWeight: 700, marginBottom: 4 }}>STEP GOAL</div><input type="number" value={goals.steps} onChange={e => saveGoals2({ ...goals, steps: parseInt(e.target.value) || 0 })} style={{ ...iS, padding: "8px 10px", fontSize: 16 }} /></div><div><div style={{ color: "#475569", fontSize: 10, fontWeight: 700, marginBottom: 4 }}>CALORIE LIMIT</div><input type="number" value={goals.calories} onChange={e => saveGoals2({ ...goals, calories: parseInt(e.target.value) || 0 })} style={{ ...iS, padding: "8px 10px", fontSize: 16 }} /></div></div></div>}
         <div style={{ ...cS, marginTop: 12 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>🥗 NUTRITION</span><button onClick={() => setView("meals")} style={{ background: "none", border: "none", color: "#60a5fa", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Add →</button></div><div style={{ display: "flex", gap: 20, marginTop: 12 }}><div><span style={{ fontSize: 28, fontWeight: 700, color: "#f59e0b" }}>{tc}</span><span style={{ color: "#64748b", fontSize: 13, marginLeft: 4 }}>cal</span></div><div><span style={{ fontSize: 28, fontWeight: 700, color: "#22c55e" }}>{tp}g</span><span style={{ color: "#64748b", fontSize: 13, marginLeft: 4 }}>protein</span></div></div></div>
-        <div style={{ ...cS, marginTop: 12 }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>🏋️ TODAY'S WORKOUT</span>
-          {twt ? (
-            <div style={{ marginTop: 10 }}><div style={{ color: "#22c55e", fontSize: 16, fontWeight: 700 }}>✓ {getWorkout(twt)?.name || twt} Completed</div><button onClick={() => startW(twt)} style={{ ...bP, background: "#1e293b", marginTop: 10, fontSize: 14 }}>View / Edit →</button></div>
-          ) : iwd() ? (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 18 }}>{WORKOUTS[gnw()]?.icon}</span><div style={{ color: "#f8fafc", fontSize: 16, fontWeight: 700 }}>{WORKOUTS[gnw()].name}</div></div>
-              <div style={{ color: "#64748b", fontSize: 13, marginBottom: 12, marginTop: 4 }}>{WORKOUTS[gnw()].subtitle}</div>
-              <button onClick={() => startW(gnw())} style={bP}>Start Workout →</button>
-              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <button onClick={skipDay} style={{ flex: 1, background: "#1e293b", border: "1px solid #334155", color: "#94a3b8", borderRadius: 10, padding: "10px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Skip today</button>
-                <button onClick={() => setShowSkipSelect(!showSkipSelect)} style={{ flex: 1, background: "#1e293b", border: "1px solid #334155", color: "#60a5fa", borderRadius: 10, padding: "10px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{showSkipSelect ? "Cancel" : "Change workout"}</button>
-              </div>
-              {showSkipSelect && <div style={{ marginTop: 10, background: "#0f172a", borderRadius: 12, padding: 12, border: "1px solid #1e293b" }}>
-                <div style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600, marginBottom: 8, letterSpacing: 1 }}>SELECT WORKOUT TO START</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>{WORKOUT_ORDER.map(k => <button key={k} onClick={() => skipSelect(k)} style={{ background: gnw() === k ? `${WORKOUTS[k].color}20` : "#111827", border: gnw() === k ? `1px solid ${WORKOUTS[k].color}` : "1px solid #1f2937", color: "#f8fafc", borderRadius: 10, padding: "12px 10px", cursor: "pointer", textAlign: "center" }}><span style={{ fontSize: 16 }}>{WORKOUTS[k].icon}</span><div style={{ fontSize: 13, fontWeight: 700, marginTop: 4 }}>{WORKOUTS[k].name}</div><div style={{ color: "#64748b", fontSize: 11 }}>{WORKOUTS[k].subtitle}</div></button>)}</div>
-              </div>}
-            </div>
-          ) : isAbDay() ? (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 18 }}>🟠</span><div style={{ color: "#f97316", fontSize: 16, fontWeight: 700 }}>{AB_WORKOUTS[gnaw()]?.name}</div></div>
-              <div style={{ color: "#64748b", fontSize: 13, marginBottom: 12, marginTop: 4 }}>{AB_WORKOUTS[gnaw()]?.subtitle} • Dumbbells, bench & medicine ball</div>
-              <button onClick={() => startW(gnaw())} style={{ ...bP, background: "linear-gradient(135deg, #f97316, #ea580c)" }}>Start Ab Workout →</button>
-              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <button onClick={skipDay} style={{ flex: 1, background: "#1e293b", border: "1px solid #334155", color: "#94a3b8", borderRadius: 10, padding: "10px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Skip today</button>
-                <button onClick={() => setShowSkipSelect(!showSkipSelect)} style={{ flex: 1, background: "#1e293b", border: "1px solid #334155", color: "#60a5fa", borderRadius: 10, padding: "10px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{showSkipSelect ? "Cancel" : "Change workout"}</button>
-              </div>
-              {showSkipSelect && <div style={{ marginTop: 10, background: "#0f172a", borderRadius: 12, padding: 12, border: "1px solid #1e293b" }}>
-                <div style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600, marginBottom: 8, letterSpacing: 1 }}>SELECT WORKOUT TO START</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>{WORKOUT_ORDER.map(k => <button key={k} onClick={() => skipSelect(k)} style={{ background: "#111827", border: "1px solid #1f2937", color: "#f8fafc", borderRadius: 10, padding: "12px 10px", cursor: "pointer", textAlign: "center" }}><span style={{ fontSize: 16 }}>{WORKOUTS[k].icon}</span><div style={{ fontSize: 13, fontWeight: 700, marginTop: 4 }}>{WORKOUTS[k].name}</div><div style={{ color: "#64748b", fontSize: 11 }}>{WORKOUTS[k].subtitle}</div></button>)}</div>
-              </div>}
-            </div>
+        {/* Today's Status */}
+        <div style={{ ...cS, marginTop: 12 }}>
+          {twt && twt !== "skip" ? (
+            <div><div style={{ display: "flex", alignItems: "center", gap: 10 }}><div style={{ color: "#22c55e", fontSize: 20 }}>✓</div><div><div style={{ color: "#22c55e", fontSize: 16, fontWeight: 700 }}>{getWorkout(twt)?.name || twt} Completed</div><div style={{ color: "#64748b", fontSize: 12, marginTop: 2 }}>Today</div></div></div><button onClick={() => startW(twt)} style={{ background: "#1e293b", border: "1px solid #334155", color: "#94a3b8", borderRadius: 10, padding: "10px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", width: "100%", marginTop: 10 }}>View / Edit →</button></div>
+          ) : twt === "skip" ? (
+            <div style={{ color: "#64748b", fontSize: 14 }}>⏭️ Skipped today</div>
           ) : (
-            <div style={{ marginTop: 10, color: "#64748b", fontSize: 14 }}>Loading...</div>
+            <div style={{ color: "#94a3b8", fontSize: 14 }}>No workout logged yet — head to the <span style={{ color: "#60a5fa", cursor: "pointer" }} onClick={() => setView("workout")}>Workout tab</span> to start</div>
           )}
+        </div>
+
+        {/* Last 3 Days */}
+        <div style={{ ...cS, marginTop: 12 }}>
+          <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>📋 LAST 3 DAYS</span>
+          <div style={{ marginTop: 10 }}>
+            {(() => {
+              const days = [];
+              for (let i = 0; i < 3; i++) {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                const ds = d.toISOString().split("T")[0];
+                const wl = workoutLogs[ds];
+                const dayName = i === 0 ? "Today" : i === 1 ? "Yesterday" : d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+                const wk = wl ? getWorkout(wl.type) : null;
+                days.push(<div key={ds} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 2 ? "1px solid #1f2937" : "none" }}>
+                  <span style={{ color: "#94a3b8", fontSize: 13 }}>{dayName}</span>
+                  {wl?.type === "skip" ? <span style={{ color: "#64748b", fontSize: 13 }}>⏭️ Skipped</span> : wk ? <span style={{ color: wk.color, fontSize: 13, fontWeight: 600 }}>{wk.icon} {wk.name}</span> : <span style={{ color: "#334155", fontSize: 13 }}>—</span>}
+                </div>);
+              }
+              return days;
+            })()}
+          </div>
+        </div>
+
+        {/* Tomorrow's Suggestion */}
+        <div style={{ ...cS, marginTop: 12 }}>
+          <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>📅 UP NEXT</span>
+          {(() => {
+            const nxt = getNextSuggestion();
+            const nw = getWorkout(nxt);
+            return nw ? <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+              <span style={{ fontSize: 20 }}>{nw.icon}</span>
+              <div><div style={{ color: "#f8fafc", fontSize: 15, fontWeight: 700 }}>{nw.name}</div><div style={{ color: "#64748b", fontSize: 12 }}>{nw.subtitle}</div></div>
+            </div> : null;
+          })()}
         </div>
 
         {/* Reset All */}
@@ -843,9 +845,12 @@ export default function App() {
 
       {view === "workout" && <div style={{ padding: 20 }}>
         <h1 style={{ margin: "0 0 20px", fontSize: 26, fontWeight: 700 }}>Workouts</h1>
-        {WORKOUT_ORDER.map(k => { const w = WORKOUTS[k], isN = gnw() === k && iwd(); return <div key={k} style={{ ...cS, marginBottom: 12, border: isN ? `1px solid ${w.color}` : "1px solid #1f2937" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 18 }}>{w.icon}</span><div><div style={{ fontSize: 18, fontWeight: 700 }}>{w.name}</div><div style={{ color: "#64748b", fontSize: 13, marginTop: 2 }}>{w.subtitle}</div></div></div>{isN && <span style={{ background: w.color, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20 }}>NEXT</span>}</div><button onClick={() => startW(k)} style={{ ...bP, marginTop: 12, background: isN ? w.color : "#1e293b", fontSize: 14 }}>{isN ? "Start →" : "Preview →"}</button></div>; })}
+        {twt && twt !== "skip" && <div style={{ ...cS, marginBottom: 16, border: "1px solid #22c55e30", background: "#22c55e08" }}><div style={{ color: "#22c55e", fontSize: 14, fontWeight: 700 }}>✓ {getWorkout(twt)?.name} completed today</div></div>}
+        {WORKOUT_ORDER.map(k => { const w = WORKOUTS[k], isN = getNextSuggestion() === k; return <div key={k} style={{ ...cS, marginBottom: 12, border: isN ? `1px solid ${w.color}` : "1px solid #1f2937" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 18 }}>{w.icon}</span><div><div style={{ fontSize: 18, fontWeight: 700 }}>{w.name}</div><div style={{ color: "#64748b", fontSize: 13, marginTop: 2 }}>{w.subtitle}</div></div></div>{isN && <span style={{ background: w.color, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20 }}>NEXT</span>}</div><button onClick={() => startW(k)} style={{ ...bP, marginTop: 12, background: isN ? w.color : "#1e293b", fontSize: 14 }}>Start →</button></div>; })}
         <h2 style={{ margin: "20px 0 12px", fontSize: 20, fontWeight: 700, color: "#f97316" }}>🟠 Ab Workouts</h2>
-        {AB_ORDER.map(k => { const w = AB_WORKOUTS[k], isN = gnaw() === k && isAbDay(); return <div key={k} style={{ ...cS, marginBottom: 12, border: isN ? `1px solid ${w.color}` : "1px solid #1f2937" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 18 }}>{w.icon}</span><div><div style={{ fontSize: 18, fontWeight: 700 }}>{w.name}</div><div style={{ color: "#64748b", fontSize: 13, marginTop: 2 }}>{w.subtitle}</div></div></div>{isN && <span style={{ background: w.color, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20 }}>NEXT</span>}</div><button onClick={() => startW(k)} style={{ ...bP, marginTop: 12, background: isN ? w.color : "#1e293b", fontSize: 14 }}>{isN ? "Start →" : "Preview →"}</button></div>; })}
+        {AB_ORDER.map(k => { const w = AB_WORKOUTS[k], isN = getNextSuggestion() === k; return <div key={k} style={{ ...cS, marginBottom: 12, border: isN ? `1px solid ${w.color}` : "1px solid #1f2937" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 18 }}>{w.icon}</span><div><div style={{ fontSize: 18, fontWeight: 700 }}>{w.name}</div><div style={{ color: "#64748b", fontSize: 13, marginTop: 2 }}>{w.subtitle}</div></div></div>{isN && <span style={{ background: w.color, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20 }}>NEXT</span>}</div><button onClick={() => startW(k)} style={{ ...bP, marginTop: 12, background: isN ? w.color : "#1e293b", fontSize: 14 }}>Start →</button></div>; })}
+        {!twt && <button onClick={skipDay} style={{ ...cS, marginTop: 16, width: "100%", background: "#1e293b", border: "1px solid #334155", color: "#94a3b8", borderRadius: 12, padding: "14px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "center" }}>⏭️ Skip Today — No workout</button>}
+        {twt === "skip" && <div style={{ ...cS, marginTop: 16, textAlign: "center", border: "1px solid #334155" }}><div style={{ color: "#64748b", fontSize: 14 }}>⏭️ Today marked as skipped</div></div>}
         <div style={{ ...cS, marginTop: 20 }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>⏱️ REST TIMER</span><div style={{ display: "flex", gap: 10, marginTop: 10, alignItems: "center" }}><input type="number" value={config.restTime} onChange={async e => { const n = { ...config, restTime: parseInt(e.target.value) || 90 }; setConfig(n); await sv("ft-config", n); }} style={{ ...iS, width: 80, textAlign: "center", fontSize: 20, fontWeight: 700 }} /><span style={{ color: "#64748b" }}>seconds</span></div></div>
       </div>}
 
