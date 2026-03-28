@@ -309,12 +309,15 @@ function MuscleInfo({ muscles }) {
   );
 }
 
-function ExerciseLogger({ exercise, existingData, history, onSave, restTime }) {
+function ExerciseLogger({ exercise, existingData, history, onSave, restTime, note, onSaveNote }) {
   const [sets, setSets] = useState(() => existingData?.length ? JSON.parse(JSON.stringify(existingData)) : Array.from({ length: exercise.sets }, () => ({ weight: "", reps: "", rpe: "" })));
   const [timerKey, setTimerKey] = useState(null), [showGuide, setShowGuide] = useState(false);
-  useEffect(() => { setSets(existingData?.length ? JSON.parse(JSON.stringify(existingData)) : Array.from({ length: exercise.sets }, () => ({ weight: "", reps: "", rpe: "" }))); setTimerKey(null); setShowGuide(false); }, [exercise.id]);
+  const [noteText, setNoteText] = useState(note || ""), [showNote, setShowNote] = useState(false);
+  useEffect(() => { setSets(existingData?.length ? JSON.parse(JSON.stringify(existingData)) : Array.from({ length: exercise.sets }, () => ({ weight: "", reps: "", rpe: "" }))); setTimerKey(null); setShowGuide(false); setNoteText(note || ""); setShowNote(false); }, [exercise.id]);
   const update = (i, f, v) => { const n = [...sets]; n[i] = { ...n[i], [f]: v }; setSets(n); if (f === "rpe" && v && n[i].weight && n[i].reps) { setTimerKey(`${exercise.id}-${i}-${Date.now()}`); onSave(exercise.id, n); } };
   const saveWR = (i) => { if (sets[i].weight && sets[i].reps) onSave(exercise.id, sets); };
+  const addSet = () => { const n = [...sets, { weight: "", reps: "", rpe: "" }]; setSets(n); };
+  const removeSet = (i) => { if (sets.length <= 1) return; const n = sets.filter((_, j) => j !== i); setSets(n); onSave(exercise.id, n); };
   const last = history?.length > 0 ? history[history.length - 1] : null;
   const guide = EXERCISE_GUIDES[exercise.id];
   const inp = { background: "#1e293b", border: "1px solid #334155", color: "#f8fafc", borderRadius: 8, padding: "10px 8px", fontSize: 16, textAlign: "center", width: "100%", outline: "none" };
@@ -329,8 +332,28 @@ function ExerciseLogger({ exercise, existingData, history, onSave, restTime }) {
             {exercise.superset && <span style={{ background: "#7c3aed", color: "#fff", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 600 }}>SUPERSET</span>}
           </div>
         </div>
-        <button onClick={() => setShowGuide(!showGuide)} style={{ background: showGuide ? "#dc2626" : "#1e293b", border: showGuide ? "none" : "1px solid #334155", color: "#fff", borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>{showGuide ? "✕ Close" : "📖 Form"}</button>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button onClick={() => setShowNote(!showNote)} style={{ background: showNote ? "#f59e0b" : "#1e293b", border: showNote ? "none" : "1px solid #334155", color: "#fff", borderRadius: 8, padding: "8px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{note ? "📝" : "✏️"}</button>
+          <button onClick={() => setShowGuide(!showGuide)} style={{ background: showGuide ? "#dc2626" : "#1e293b", border: showGuide ? "none" : "1px solid #334155", color: "#fff", borderRadius: 8, padding: "8px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{showGuide ? "✕" : "📖"}</button>
+        </div>
       </div>
+
+      {/* Previous note from last time */}
+      {note && !showNote && <div style={{ background: "#1a1500", borderRadius: 10, padding: 12, marginBottom: 12, border: "1px solid #422006" }}>
+        <div style={{ color: "#f59e0b", fontSize: 11, fontWeight: 600, marginBottom: 4, letterSpacing: 1 }}>📝 YOUR NOTE</div>
+        <div style={{ color: "#fbbf24", fontSize: 13, lineHeight: 1.4 }}>{note}</div>
+      </div>}
+
+      {/* Note editor */}
+      {showNote && <div style={{ background: "#0f172a", borderRadius: 12, padding: 14, marginBottom: 14, border: "1px solid #1e293b" }}>
+        <div style={{ color: "#f59e0b", fontSize: 11, fontWeight: 600, marginBottom: 8, letterSpacing: 1 }}>EXERCISE NOTE</div>
+        <textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="e.g. Used rope instead of bar, felt it more in right shoulder..." style={{ background: "#1e293b", border: "1px solid #334155", color: "#f8fafc", borderRadius: 8, padding: 12, fontSize: 14, width: "100%", outline: "none", minHeight: 70, resize: "vertical", boxSizing: "border-box", fontFamily: "inherit" }} />
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <button onClick={() => { onSaveNote(exercise.id, noteText); setShowNote(false); }} style={{ flex: 1, background: "#f59e0b", border: "none", color: "#000", borderRadius: 8, padding: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Save Note</button>
+          {noteText && <button onClick={() => { setNoteText(""); onSaveNote(exercise.id, ""); setShowNote(false); }} style={{ background: "#1e293b", border: "1px solid #334155", color: "#ef4444", borderRadius: 8, padding: "10px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Clear</button>}
+        </div>
+      </div>}
+
       {guide?.muscles && <MuscleInfo muscles={guide.muscles} />}
       {showGuide && guide && (
         <div style={{ background: "#0f172a", borderRadius: 14, padding: 16, marginBottom: 16, border: "1px solid #1e293b" }}>
@@ -348,7 +371,8 @@ function ExerciseLogger({ exercise, existingData, history, onSave, restTime }) {
         <div key={i} style={{ background: "#111827", borderRadius: 12, padding: 14, marginBottom: 8, border: s.weight && s.reps && s.rpe ? "1px solid #22c55e30" : "1px solid #1f2937" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
             <div style={{ color: s.weight && s.reps && s.rpe ? "#22c55e" : "#3b82f6", fontSize: 14, fontWeight: 700, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: s.weight && s.reps && s.rpe ? "rgba(34,197,94,0.15)" : "rgba(59,130,246,0.15)" }}>{s.weight && s.reps && s.rpe ? "✓" : i + 1}</div>
-            <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600 }}>Set {i + 1}</span>
+            <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, flex: 1 }}>Set {i + 1}</span>
+            {sets.length > 1 && <button onClick={() => removeSet(i)} style={{ background: "none", border: "none", color: "#ef4444", fontSize: 16, cursor: "pointer", padding: "4px 8px" }}>×</button>}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
             <div><div style={{ color: "#475569", fontSize: 10, fontWeight: 700, marginBottom: 4, textAlign: "center" }}>WEIGHT (lbs)</div><input type="number" value={s.weight} onChange={e => update(i, "weight", e.target.value)} onBlur={() => saveWR(i)} placeholder="0" style={inp} /></div>
@@ -360,6 +384,7 @@ function ExerciseLogger({ exercise, existingData, history, onSave, restTime }) {
           </div>
         </div>
       ))}
+      <button onClick={addSet} style={{ width: "100%", padding: 12, background: "#0f172a", border: "1px dashed #334155", color: "#64748b", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", marginBottom: 8 }}>+ Add Set</button>
       {timerKey !== null && <RestTimer seconds={restTime} timerKey={timerKey} onDone={() => setTimerKey(null)} />}
     </div>
   );
@@ -395,9 +420,14 @@ function CalendarView({ workoutLogs, config, daily, onStartWorkout, onSaveDaily,
   const nm = () => { mo === 11 ? (setMo(0), setYr(yr + 1)) : setMo(mo + 1); setSel(null); };
   useEffect(() => { if (sel && daily[sel]) { setEditSteps(daily[sel].steps?.toString() || ""); setEditCals(daily[sel].calories?.toString() || ""); } else { setEditSteps(""); setEditCals(""); } }, [sel]);
   const gwfd = (ds) => {
+    // Always show completed workouts first (never delete these)
     if (workoutLogs[ds]) return { type: workoutLogs[ds].type, completed: true };
-    const t = new Date(ds), td = new Date(todayStr); if (t <= td) return null;
-    let lld = config.lastWorkoutDate, lt = config.lastWorkout; if (!lld || !lt) { lld = todayStr; lt = "D"; }
+    // Past dates with no log = no workout
+    const t = new Date(ds), td = new Date(todayStr);
+    if (t < td) return null;
+    // Today and future: project based on current config
+    let lld = config.lastWorkoutDate, lt = config.lastWorkout;
+    if (!lld || !lt) { lld = todayStr; lt = "D"; }
     const df = Math.floor((t - new Date(lld)) / 86400000);
     if (df <= 0 || df % 2 !== 0) return null;
     return { type: WORKOUT_ORDER[(WORKOUT_ORDER.indexOf(lt) + df / 2) % 4], completed: false };
@@ -451,6 +481,8 @@ export default function App() {
   const [weightInput, setWeightInput] = useState(""), [stepsInput, setStepsInput] = useState(""), [calInput, setCalInput] = useState("");
   const [mealName, setMealName] = useState(""), [mealCals, setMealCals] = useState(""), [mealProtein, setMealProtein] = useState("");
   const [celebrationWorkout, setCelebrationWorkout] = useState(null), [editGoals, setEditGoals] = useState(false);
+  const [exerciseNotes, setExerciseNotes] = useState({});
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const today = TODAY();
 
   // Check for saved session
@@ -466,15 +498,16 @@ export default function App() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const [c, w, d, wl, ml, g] = await Promise.all([
+      const [c, w, d, wl, ml, g, en] = await Promise.all([
         loadData(user, "ft-config", { restTime: 90, lastWorkout: null, lastWorkoutDate: null }),
         loadData(user, "ft-weights", {}),
         loadData(user, "ft-daily", {}),
         loadData(user, "ft-workouts", {}),
         loadData(user, "ft-meals", {}),
         loadData(user, "ft-goals", { steps: 7500, calories: 2000 }),
+        loadData(user, "ft-notes", {}),
       ]);
-      setConfig(c); setWeights(w); setDaily(d); setWorkoutLogs(wl); setMealLogs(ml); setGoals(g);
+      setConfig(c); setWeights(w); setDaily(d); setWorkoutLogs(wl); setMealLogs(ml); setGoals(g); setExerciseNotes(en);
       if (w[today]) setWeightInput(w[today].toString());
       if (d[today]) { setStepsInput(d[today].steps?.toString() || ""); setCalInput(d[today].calories?.toString() || ""); }
       setLoading(false);
@@ -502,7 +535,16 @@ export default function App() {
   const aM = async () => { if (!mealName || !mealCals) return; const m = { id: Date.now(), name: mealName, calories: parseInt(mealCals) || 0, protein: parseInt(mealProtein) || 0, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }; const n = { ...mealLogs, [today]: [...(mealLogs[today] || []), m] }; setMealLogs(n); await sv("ft-meals", n); setMealName(""); setMealCals(""); setMealProtein(""); };
   const dM = async mid => { const n = { ...mealLogs, [today]: (mealLogs[today] || []).filter(m => m.id !== mid) }; setMealLogs(n); await sv("ft-meals", n); };
   const startW = t => { setActiveWorkout(t); setActiveExercise(0); setView("workout-active"); };
-  const finishW = () => { const c = activeWorkout; setCelebrationWorkout(c); setView("celebration"); setActiveWorkout(null); setActiveExercise(null); const nc = { ...config, lastWorkout: c, lastWorkoutDate: today }; setConfig(nc); sv("ft-config", nc); };
+  const finishW = () => {
+    const c = activeWorkout;
+    // Ensure workout is logged even if no exercises were filled in
+    const existing = workoutLogs[today] || { type: c, exercises: {} };
+    existing.type = c;
+    const nw = { ...workoutLogs, [today]: existing };
+    setWorkoutLogs(nw); sv("ft-workouts", nw);
+    setCelebrationWorkout(c); setView("celebration"); setActiveWorkout(null); setActiveExercise(null);
+    const nc = { ...config, lastWorkout: c, lastWorkoutDate: today }; setConfig(nc); sv("ft-config", nc);
+  };
   const skipWorkout = () => {
     // Don't advance rotation — just make today rest, tomorrow = same workout
     // Set lastWorkoutDate to yesterday so: today diff=1 (rest), tomorrow diff=2 (workout day with same gnw)
@@ -519,6 +561,17 @@ export default function App() {
   };
   const workOutToday = () => { realignSchedule(); };
   const geh = eid => { const h = []; Object.keys(workoutLogs).sort().forEach(d => { const l = workoutLogs[d]; if (l.exercises?.[eid]) h.push({ date: d, ...l.exercises[eid] }); }); return h; };
+  const saveNote = async (eid, note) => { const n = { ...exerciseNotes, [eid]: note }; setExerciseNotes(n); await sv("ft-notes", n); };
+  const resetAll = async () => {
+    const empty = {};
+    const defConfig = { restTime: 90, lastWorkout: null, lastWorkoutDate: null };
+    const defGoals = { steps: 7500, calories: 2000 };
+    setConfig(defConfig); setWeights(empty); setDaily(empty); setWorkoutLogs(empty); setMealLogs(empty); setGoals(defGoals); setExerciseNotes(empty);
+    setWeightInput(""); setStepsInput(""); setCalInput("");
+    await sv("ft-config", defConfig); await sv("ft-weights", empty); await sv("ft-daily", empty);
+    await sv("ft-workouts", empty); await sv("ft-meals", empty); await sv("ft-goals", defGoals); await sv("ft-notes", empty);
+    setShowResetConfirm(false);
+  };
   const saveGoals2 = async (g) => { setGoals(g); await sv("ft-goals", g); setEditGoals(false); };
   const exp = async () => { const d = { config, weights, daily, workoutLogs, mealLogs, goals, exportDate: new Date().toISOString() }; const b = new Blob([JSON.stringify(d, null, 2)], { type: "application/json" }), u = URL.createObjectURL(b); const a = document.createElement("a"); a.href = u; a.download = `bvs-backup-${today}.json`; a.click(); URL.revokeObjectURL(u); };
 
@@ -549,7 +602,7 @@ export default function App() {
           {wo.exercises.map((e, i) => { const done = tl?.exercises?.[e.id]?.sets?.every(s => s.weight && s.reps && s.rpe); return <button key={i} onClick={() => setActiveExercise(i)} style={{ background: i === activeExercise ? "#3b82f6" : done ? "rgba(34,197,94,0.2)" : "#1e293b", border: done && i !== activeExercise ? "1px solid #22c55e" : "1px solid transparent", color: i === activeExercise ? "#fff" : done ? "#22c55e" : "#94a3b8", borderRadius: 8, padding: "8px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer", flexShrink: 0, minWidth: 36 }}>{done ? "✓" : i + 1}</button>; })}
         </div>
         <div style={{ padding: 20, paddingBottom: 100 }}>
-          <ExerciseLogger key={ex.id} exercise={ex} existingData={tl?.exercises?.[ex.id]?.sets} history={geh(ex.id)} restTime={config.restTime} onSave={(eid, sd) => sE(activeWorkout, eid, sd)} />
+          <ExerciseLogger key={ex.id} exercise={ex} existingData={tl?.exercises?.[ex.id]?.sets} history={geh(ex.id)} restTime={config.restTime} onSave={(eid, sd) => sE(activeWorkout, eid, sd)} note={exerciseNotes[ex.id] || ""} onSaveNote={saveNote} />
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
             <button onClick={() => setActiveExercise(Math.max(0, activeExercise - 1))} disabled={activeExercise === 0} style={{ ...bP, background: "#1e293b", opacity: activeExercise === 0 ? 0.4 : 1 }}>← Prev</button>
             <button onClick={() => setActiveExercise(Math.min(wo.exercises.length - 1, activeExercise + 1))} disabled={activeExercise === wo.exercises.length - 1} style={{ ...bP, opacity: activeExercise === wo.exercises.length - 1 ? 0.4 : 1 }}>Next →</button>
@@ -568,56 +621,3 @@ export default function App() {
         <div style={{ padding: "16px 20px", borderBottom: "1px solid #1f2937" }}><button onClick={() => { setView("progress"); setProgressExercise(null); }} style={{ background: "none", border: "none", color: "#60a5fa", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>← Back</button></div>
         <div style={{ padding: 20 }}>
           <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700 }}>{progressExercise.name}</h2>
-          <p style={{ color: "#64748b", margin: "0 0 16px", fontSize: 14 }}>{hist.length} sessions</p>
-          {guide?.muscles && <MuscleInfo muscles={guide.muscles} />}
-          {cd.length > 1 ? <><div style={cS}><h4 style={{ margin: "0 0 12px", color: "#94a3b8", fontSize: 13, fontWeight: 600 }}>MAX WEIGHT</h4><ResponsiveContainer width="100%" height={180}><LineChart data={cd}><XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} /><YAxis tick={{ fill: "#64748b", fontSize: 11 }} /><Tooltip contentStyle={{ background: "#1e293b", border: "none", borderRadius: 8, color: "#f8fafc" }} /><Line type="monotone" dataKey="weight" stroke="#3b82f6" strokeWidth={2} dot={{ fill: "#3b82f6", r: 4 }} /></LineChart></ResponsiveContainer></div><div style={{ ...cS, marginTop: 12 }}><h4 style={{ margin: "0 0 12px", color: "#94a3b8", fontSize: 13, fontWeight: 600 }}>TOTAL VOLUME</h4><ResponsiveContainer width="100%" height={180}><BarChart data={cd}><XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} /><YAxis tick={{ fill: "#64748b", fontSize: 11 }} /><Tooltip contentStyle={{ background: "#1e293b", border: "none", borderRadius: 8, color: "#f8fafc" }} /><Bar dataKey="volume" fill="#22c55e" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div></> : <div style={{ ...cS, textAlign: "center", color: "#64748b" }}><p>Log 2+ sessions to see charts.</p></div>}
-          <div style={{ marginTop: 16 }}><h4 style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, margin: "0 0 10px" }}>SESSION HISTORY</h4>{hist.slice().reverse().map((h, i) => <div key={i} style={{ ...cS, marginBottom: 8, padding: 14 }}><div style={{ color: "#60a5fa", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{h.date}</div><div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>{h.sets.map((s, j) => { const c = s.rpe === "red" ? "#ef4444" : s.rpe === "yellow" ? "#f59e0b" : s.rpe === "green" ? "#22c55e" : "#94a3b8"; return <span key={j} style={{ color: "#cbd5e1", fontSize: 13 }}>Set {j+1}: {s.weight}lb × {s.reps} <span style={{ color: c }}>●</span></span>; })}</div></div>)}</div>
-        </div>
-      </div>
-    );
-  }
-
-  const nav = [{ id: "dashboard", icon: "◉", label: "Home" }, { id: "calendar", icon: "📅", label: "Calendar" }, { id: "workout", icon: "⚡", label: "Workout" }, { id: "meals", icon: "🍽", label: "Meals" }, { id: "progress", icon: "📈", label: "Progress" }];
-  return (
-    <div style={{ background: "#030712", minHeight: "100vh", color: "#f8fafc", fontFamily: "'DM Sans', sans-serif", paddingBottom: 80 }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-      {view === "dashboard" && <div style={{ padding: 20 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}><div><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 28, fontWeight: 800, letterSpacing: -1 }}>BVS</span><h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, color: "#94a3b8" }}>Workout</h1></div><p style={{ margin: "2px 0 0", color: "#64748b", fontSize: 14 }}>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} • <span style={{ color: "#3b82f6" }}>{user}</span></p></div><div style={{ display: "flex", gap: 8 }}><button onClick={exp} style={{ background: "#1e293b", border: "none", color: "#94a3b8", borderRadius: 8, padding: "8px 10px", fontSize: 11, cursor: "pointer" }}>Export</button><button onClick={handleLogout} style={{ background: "#1e293b", border: "none", color: "#ef4444", borderRadius: 8, padding: "8px 10px", fontSize: 11, cursor: "pointer" }}>Logout</button></div></div>
-        <div style={cS}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>⚖️ DAILY WEIGHT</span>{weights[today] && <span style={{ color: "#22c55e", fontSize: 12 }}>✓ {weights[today]} lbs</span>}</div><div style={{ display: "flex", gap: 10 }}><input type="number" value={weightInput} onChange={e => setWeightInput(e.target.value)} placeholder="lbs" style={iS} /><button onClick={() => { if (weightInput) sW(weightInput); }} style={{ background: "#3b82f6", border: "none", color: "#fff", borderRadius: 10, padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>Save</button></div>{wcd.length > 2 && <div style={{ marginTop: 12 }}><ResponsiveContainer width="100%" height={70}><LineChart data={wcd}><XAxis dataKey="date" tick={{ fill: "#475569", fontSize: 9 }} /><Tooltip contentStyle={{ background: "#1e293b", border: "none", borderRadius: 8, color: "#f8fafc", fontSize: 12 }} /><Line type="monotone" dataKey="weight" stroke="#60a5fa" strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>}</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
-          <div style={cS}><span style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600, letterSpacing: 1 }}>👟 STEPS</span><input type="number" value={stepsInput} onChange={e => setStepsInput(e.target.value)} onBlur={() => sD(today, parseInt(stepsInput) || 0, parseInt(calInput) || 0)} placeholder="0" style={{ ...iS, marginTop: 8, fontSize: 20, fontWeight: 700, padding: "10px 12px" }} /><GoalBar current={todaySteps} goal={goals.steps} color="#22c55e" /></div>
-          <div style={cS}><span style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600, letterSpacing: 1 }}>🔥 CALS BURNED</span><input type="number" value={calInput} onChange={e => setCalInput(e.target.value)} onBlur={() => sD(today, parseInt(stepsInput) || 0, parseInt(calInput) || 0)} placeholder="0" style={{ ...iS, marginTop: 8, fontSize: 20, fontWeight: 700, padding: "10px 12px" }} /><GoalBar current={todayCals} goal={goals.calories} color="#f59e0b" invert /></div>
-        </div>
-        <button onClick={() => setEditGoals(!editGoals)} style={{ background: "none", border: "none", color: "#475569", fontSize: 12, cursor: "pointer", marginTop: 8, padding: "4px 0" }}>{editGoals ? "Hide goals" : "⚙️ Edit goals"}</button>
-        {editGoals && <div style={{ ...cS, marginTop: 4, padding: 14 }}><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}><div><div style={{ color: "#475569", fontSize: 10, fontWeight: 700, marginBottom: 4 }}>STEP GOAL</div><input type="number" value={goals.steps} onChange={e => saveGoals2({ ...goals, steps: parseInt(e.target.value) || 0 })} style={{ ...iS, padding: "8px 10px", fontSize: 16 }} /></div><div><div style={{ color: "#475569", fontSize: 10, fontWeight: 700, marginBottom: 4 }}>CALORIE LIMIT</div><input type="number" value={goals.calories} onChange={e => saveGoals2({ ...goals, calories: parseInt(e.target.value) || 0 })} style={{ ...iS, padding: "8px 10px", fontSize: 16 }} /></div></div></div>}
-        <div style={{ ...cS, marginTop: 12 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>🥗 NUTRITION</span><button onClick={() => setView("meals")} style={{ background: "none", border: "none", color: "#60a5fa", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Add →</button></div><div style={{ display: "flex", gap: 20, marginTop: 12 }}><div><span style={{ fontSize: 28, fontWeight: 700, color: "#f59e0b" }}>{tc}</span><span style={{ color: "#64748b", fontSize: 13, marginLeft: 4 }}>cal</span></div><div><span style={{ fontSize: 28, fontWeight: 700, color: "#22c55e" }}>{tp}g</span><span style={{ color: "#64748b", fontSize: 13, marginLeft: 4 }}>protein</span></div></div></div>
-        <div style={{ ...cS, marginTop: 12 }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>🏋️ TODAY'S WORKOUT</span>{twt ? <div style={{ marginTop: 10 }}><div style={{ color: "#22c55e", fontSize: 16, fontWeight: 700 }}>✓ {WORKOUTS[twt].name} Completed</div><button onClick={() => startW(twt)} style={{ ...bP, background: "#1e293b", marginTop: 10, fontSize: 14 }}>View / Edit →</button></div> : iwd() ? <div style={{ marginTop: 10 }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 18 }}>{WORKOUTS[gnw()]?.icon}</span><div style={{ color: "#f8fafc", fontSize: 16, fontWeight: 700 }}>{WORKOUTS[gnw()].name}</div></div><div style={{ color: "#64748b", fontSize: 13, marginBottom: 12, marginTop: 4 }}>{WORKOUTS[gnw()].subtitle}</div><button onClick={() => startW(gnw())} style={bP}>Start Workout →</button><button onClick={skipWorkout} style={{ background: "none", border: "none", color: "#64748b", fontSize: 13, cursor: "pointer", marginTop: 10, width: "100%", padding: 8 }}>Skip — do this one tomorrow instead</button></div> : <div style={{ marginTop: 10 }}><div style={{ color: "#64748b", fontSize: 14, marginBottom: 12 }}>😴 Rest day — <span style={{ color: "#94a3b8" }}>next up: {WORKOUTS[gnw()]?.name}</span></div><button onClick={workOutToday} style={{ ...bP, background: "#1e293b" }}>I'm working out today →</button></div>}<button onClick={realignSchedule} style={{ background: "none", border: "none", color: "#475569", fontSize: 11, cursor: "pointer", marginTop: 8, width: "100%", padding: 4 }}>🔄 Realign schedule from today</button></div>
-      </div>}
-
-      {view === "calendar" && <CalendarView workoutLogs={workoutLogs} config={config} daily={daily} goals={goals} onStartWorkout={startW} onSaveDaily={sD} />}
-
-      {view === "workout" && <div style={{ padding: 20 }}>
-        <h1 style={{ margin: "0 0 20px", fontSize: 26, fontWeight: 700 }}>Workouts</h1>
-        {WORKOUT_ORDER.map(k => { const w = WORKOUTS[k], isN = gnw() === k && iwd(); return <div key={k} style={{ ...cS, marginBottom: 12, border: isN ? `1px solid ${w.color}` : "1px solid #1f2937" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 18 }}>{w.icon}</span><div><div style={{ fontSize: 18, fontWeight: 700 }}>{w.name}</div><div style={{ color: "#64748b", fontSize: 13, marginTop: 2 }}>{w.subtitle}</div></div></div>{isN && <span style={{ background: w.color, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20 }}>NEXT</span>}</div><button onClick={() => startW(k)} style={{ ...bP, marginTop: 12, background: isN ? w.color : "#1e293b", fontSize: 14 }}>{isN ? "Start →" : "Preview →"}</button></div>; })}
-        <div style={{ ...cS, marginTop: 20 }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>⏱️ REST TIMER</span><div style={{ display: "flex", gap: 10, marginTop: 10, alignItems: "center" }}><input type="number" value={config.restTime} onChange={async e => { const n = { ...config, restTime: parseInt(e.target.value) || 90 }; setConfig(n); await sv("ft-config", n); }} style={{ ...iS, width: 80, textAlign: "center", fontSize: 20, fontWeight: 700 }} /><span style={{ color: "#64748b" }}>seconds</span></div></div>
-      </div>}
-
-      {view === "meals" && <div style={{ padding: 20 }}>
-        <h1 style={{ margin: "0 0 4px", fontSize: 26, fontWeight: 700 }}>Meal Log</h1><p style={{ color: "#64748b", margin: "0 0 20px", fontSize: 14 }}>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}><div style={{ ...cS, textAlign: "center" }}><div style={{ color: "#f59e0b", fontSize: 32, fontWeight: 700 }}>{tc}</div><div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 600 }}>CALORIES</div></div><div style={{ ...cS, textAlign: "center" }}><div style={{ color: "#22c55e", fontSize: 32, fontWeight: 700 }}>{tp}g</div><div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 600 }}>PROTEIN</div></div></div>
-        <div style={cS}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1, display: "block", marginBottom: 12 }}>ADD MEAL</span><input type="text" value={mealName} onChange={e => setMealName(e.target.value)} placeholder="What did you eat?" style={{ ...iS, marginBottom: 10 }} /><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}><input type="number" value={mealCals} onChange={e => setMealCals(e.target.value)} placeholder="Calories" style={iS} /><input type="number" value={mealProtein} onChange={e => setMealProtein(e.target.value)} placeholder="Protein (g)" style={iS} /></div><button onClick={aM} style={{ ...bP, marginTop: 12 }}>Add Meal</button></div>
-        {tm.length > 0 && <div style={{ marginTop: 16 }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>TODAY'S MEALS</span>{tm.map(m => <div key={m.id} style={{ ...cS, marginTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}><div><div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}</div><div style={{ color: "#64748b", fontSize: 13, marginTop: 2 }}>{m.time} • {m.calories} cal • {m.protein}g</div></div><button onClick={() => dM(m.id)} style={{ background: "none", border: "none", color: "#ef4444", fontSize: 18, cursor: "pointer", padding: 8 }}>×</button></div>)}</div>}
-      </div>}
-
-      {view === "progress" && <div style={{ padding: 20 }}>
-        <h1 style={{ margin: "0 0 20px", fontSize: 26, fontWeight: 700 }}>Progress</h1>
-        <div style={cS}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>⚖️ BODY WEIGHT</span>{wcd.length > 0 ? <div><div style={{ display: "flex", gap: 16, marginTop: 12, marginBottom: 12 }}><div><span style={{ fontSize: 24, fontWeight: 700, color: "#60a5fa" }}>{wcd[wcd.length - 1]?.weight}</span><span style={{ color: "#64748b", fontSize: 13, marginLeft: 4 }}>lbs</span></div>{wcd.length > 1 && (() => { const df = (wcd[wcd.length - 1].weight - wcd[0].weight).toFixed(1), co = parseFloat(df) <= 0 ? "#22c55e" : "#f59e0b"; return <div><span style={{ fontSize: 24, fontWeight: 700, color: co }}>{parseFloat(df) > 0 ? "+" : ""}{df}</span><span style={{ color: "#64748b", fontSize: 13, marginLeft: 4 }}>lbs</span></div>; })()}</div><ResponsiveContainer width="100%" height={180}><LineChart data={wcd}><XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10 }} /><YAxis domain={["auto", "auto"]} tick={{ fill: "#64748b", fontSize: 10 }} /><Tooltip contentStyle={{ background: "#1e293b", border: "none", borderRadius: 8, color: "#f8fafc" }} /><Line type="monotone" dataKey="weight" stroke="#60a5fa" strokeWidth={2} dot={{ fill: "#60a5fa", r: 3 }} /></LineChart></ResponsiveContainer></div> : <p style={{ color: "#64748b", marginTop: 10 }}>Log weight on Home tab.</p>}</div>
-        <div style={{ marginTop: 16 }}><span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>💪 EXERCISE PROGRESSION</span>{WORKOUT_ORDER.map(k => <div key={k}><div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 16, marginBottom: 8 }}><span style={{ fontSize: 14 }}>{WORKOUTS[k].icon}</span><span style={{ color: "#475569", fontSize: 12, fontWeight: 700 }}>{WORKOUTS[k].name}</span></div>{WORKOUTS[k].exercises.map(ex => { const h = geh(ex.id), lm = h.length > 0 ? Math.max(...h[h.length - 1].sets.map(s => parseFloat(s.weight) || 0)) : null; return <button key={ex.id} onClick={() => { setProgressExercise(ex); setView("progress-detail"); }} style={{ ...cS, marginBottom: 6, width: "100%", textAlign: "left", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", padding: 14, boxSizing: "border-box" }}><div><div style={{ fontWeight: 600, fontSize: 14, color: "#f8fafc" }}>{ex.name}</div><div style={{ color: "#64748b", fontSize: 12, marginTop: 2 }}>{h.length} sessions</div></div><div style={{ textAlign: "right" }}>{lm ? <div style={{ color: "#60a5fa", fontWeight: 700, fontSize: 16 }}>{lm} lb</div> : <div style={{ color: "#334155", fontSize: 13 }}>—</div>}<div style={{ color: "#475569", fontSize: 11 }}>→</div></div></button>; })}</div>)}</div>
-      </div>}
-
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "linear-gradient(180deg, transparent, #0a0f1a 20%)", borderTop: "1px solid #1f2937", display: "flex", justifyContent: "space-around", padding: "8px 0 18px", zIndex: 100 }}>
-        {nav.map(i => <button key={i.id} onClick={() => setView(i.id)} style={{ background: "none", border: "none", color: view === i.id || (view === "progress-detail" && i.id === "progress") ? "#3b82f6" : "#475569", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer", fontSize: 10, fontWeight: 600, padding: "4px 8px" }}><span style={{ fontSize: 18 }}>{i.icon}</span>{i.label}</button>)}
-      </div>
-    </div>
-  );
-}
